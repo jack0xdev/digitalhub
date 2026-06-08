@@ -1,0 +1,77 @@
+{% extends "admin_base.html" %}
+{% block title %}Products{% endblock %}
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+  <div>
+    <div style="font-weight:800;font-size:22px">📦 Products</div>
+    <div style="color:#888;font-size:13px;margin-top:2px">{{ all_products|length }} total</div>
+  </div>
+  <a href="/admin/products/add" class="btn btn-primary" style="text-decoration:none;box-shadow:0 4px 14px rgba(108,62,232,0.3)">+ Add Product</a>
+</div>
+
+<!-- STATS -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px">
+  {% set stats = [
+    ("📦","#6C3EE8","Products", all_products|length),
+    ("🛒","#10B981","Total Sales", "{:,}".format(total_sales)),
+    ("⭐","#F59E0B","Featured", all_products|selectattr("featured")|list|length),
+    ("🏷️","#EF4444","Categories", all_products|map(attribute="category")|unique|list|length)
+  ] %}
+  {% for icon, color, label, val in stats %}
+  <div class="card" style="padding:16px 18px">
+    <div style="font-size:26px;margin-bottom:8px">{{ icon }}</div>
+    <div style="font-weight:800;font-size:24px;color:{{ color }}">{{ val }}</div>
+    <div style="font-size:11px;color:#888;margin-top:2px">{{ label }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- TABLE -->
+<div class="card" style="overflow:hidden">
+  <div style="padding:12px 16px;border-bottom:1px solid #f5f5f5">
+    <form method="get" style="display:inline">
+      <input class="inp" style="max-width:280px;font-size:13px" name="q" value="{{ search }}" placeholder="🔍 Search products..."/>
+    </form>
+  </div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Product</th><th>Category</th><th>Price</th><th>Rating</th><th>Sales</th><th>★</th><th>Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for p in products %}
+    {% set cc = cat_colors.get(p.category, '#6C3EE8') %}
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;background:#f8f4ff;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+            {% if p.icon %}<img src="{{ p.icon }}" style="width:32px;height:32px;object-fit:cover;border-radius:6px">
+            {% else %}<span style="font-size:20px">{{ p.image }}</span>{% endif %}
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:13px">{{ p.name }}</div>
+            <div style="font-size:10px;color:#bbb">{{ p.tags|join(', ') }}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="badge" style="background:{{ cc }}18;color:{{ cc }};border-color:{{ cc }}30">{{ p.category }}</span></td>
+      <td><strong style="color:var(--pc)">${{ p.price }}</strong> <span style="font-size:11px;color:#ccc;text-decoration:line-through">${{ p.orig }}</span></td>
+      <td><span class="stars">{{ '★' * (p.rating|round|int) }}{{ '☆' * (5-p.rating|round|int) }}</span> <span style="font-size:11px;color:#aaa">{{ p.rating }}</span></td>
+      <td style="font-weight:600">{{ "{:,}".format(p.sales) }}</td>
+      <td style="font-size:16px">{{ '⭐' if p.featured else '—' }}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <a href="/admin/products/edit/{{ p.id }}" class="btn btn-ghost btn-sm" style="text-decoration:none">✏️ Edit</a>
+          <form method="post" action="/admin/products/delete/{{ p.id }}" onsubmit="return confirm('Delete this product?')">
+            <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

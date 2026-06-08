@@ -1,0 +1,98 @@
+{% extends "admin_base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+
+<div style="font-weight:800;font-size:22px;margin-bottom:22px">📊 Analytics</div>
+
+<!-- Summary cards -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px">
+  {% for icon, color, label, val in [
+    ("💰","#6C3EE8","Total Revenue","$"+"{:,}".format(total_revenue)),
+    ("🛒","#10B981","Units Sold","{:,}".format(total_sales)),
+    ("💲","#F59E0B","Avg Price","$"+avg_price|string),
+    ("🏷️","#EF4444","Avg Discount",avg_disc|string+"%")
+  ] %}
+  <div class="card" style="padding:16px 18px">
+    <div style="font-size:26px;margin-bottom:8px">{{ icon }}</div>
+    <div style="font-weight:800;font-size:22px;color:{{ color }}">{{ val }}</div>
+    <div style="font-size:11px;color:#888;margin-top:2px">{{ label }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+
+  <!-- Top by sales -->
+  <div class="card" style="padding:22px">
+    <div style="font-weight:700;font-size:14px;margin-bottom:16px">📈 Top Products by Sales</div>
+    {% for p in top_products %}
+    {% set pct = ((p.sales / max_sales) * 100)|round|int %}
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+      <div style="font-weight:800;color:#e8d8ff;width:20px;font-size:14px">#{{ loop.index }}</div>
+      <div style="width:26px;height:26px;background:#f8f4ff;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+        {% if p.icon %}<img src="{{ p.icon }}" style="width:22px;height:22px;object-fit:cover">
+        {% else %}<span style="font-size:16px">{{ p.image }}</span>{% endif %}
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:12px">{{ p.name }}</div>
+        <div style="height:5px;background:#f0eeff;border-radius:10px;margin-top:4px;overflow:hidden">
+          <div style="height:100%;background:var(--pc);border-radius:10px;width:{{ pct }}%"></div>
+        </div>
+      </div>
+      <div style="font-weight:700;color:var(--pc);font-size:12px">{{ "{:,}".format(p.sales) }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- By category -->
+  <div class="card" style="padding:22px">
+    <div style="font-weight:700;font-size:14px;margin-bottom:16px">🏷️ Sales by Category</div>
+    {% for cat, pct in cat_pcts.items() %}
+    {% set cc = cat_colors.get(cat, '#888') %}
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+      <div style="width:8px;height:8px;border-radius:50%;background:{{ cc }};flex-shrink:0"></div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+          <span style="font-size:12px;font-weight:600">{{ cat }}</span>
+          <span style="font-size:11px;color:#888">{{ pct }}%</span>
+        </div>
+        <div style="height:5px;background:#f5f5f5;border-radius:10px;overflow:hidden">
+          <div style="height:100%;background:{{ cc }};border-radius:10px;width:{{ pct }}%"></div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Top rated -->
+  <div class="card" style="padding:22px">
+    <div style="font-weight:700;font-size:14px;margin-bottom:16px">⭐ Top Rated Products</div>
+    {% for p in top_rated %}
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div style="width:26px;height:26px;background:#f8f4ff;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+        {% if p.icon %}<img src="{{ p.icon }}" style="width:22px;height:22px;object-fit:cover">
+        {% else %}<span style="font-size:16px">{{ p.image }}</span>{% endif %}
+      </div>
+      <div style="flex:1;font-weight:600;font-size:12px">{{ p.name }}</div>
+      <span class="stars">{{ '★' * (p.rating|round|int) }}{{ '☆' * (5-p.rating|round|int) }}<span style="color:#aaa;font-size:11px;margin-left:3px">{{ p.rating }}</span></span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Revenue breakdown -->
+  <div class="card" style="padding:22px">
+    <div style="font-weight:700;font-size:14px;margin-bottom:16px">💰 Revenue by Product</div>
+    {% for p in products|sort(attribute='sales',reverse=True)[:6] %}
+    {% set rev = p.price * p.sales %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f9f9f9">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="font-size:16px">{{ p.image }}</div>
+        <span style="font-size:12px;font-weight:600">{{ p.name }}</span>
+      </div>
+      <span style="font-weight:800;color:var(--pc);font-size:13px">${{ "{:,}".format(rev) }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

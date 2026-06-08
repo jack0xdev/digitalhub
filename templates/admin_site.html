@@ -1,0 +1,98 @@
+{% extends "admin_base.html" %}
+{% block title %}Site Settings{% endblock %}
+{% block content %}
+
+<div style="font-weight:800;font-size:22px;margin-bottom:22px">🌐 Site Settings</div>
+
+<div class="card" style="padding:28px;max-width:680px">
+  <form method="post">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <div style="grid-column:1/-1">
+        <label class="lbl">Site Name</label>
+        <input class="inp" name="name" value="{{ site.name }}" required/>
+      </div>
+
+      <div style="grid-column:1/-1">
+        <label class="lbl">Tagline</label>
+        <input class="inp" name="tagline" value="{{ site.tagline }}"/>
+      </div>
+
+      <div style="grid-column:1/-1">
+        <label class="lbl">Hero Title</label>
+        <input class="inp" name="heroTitle" value="{{ site.heroTitle }}"/>
+      </div>
+
+      <div style="grid-column:1/-1">
+        <label class="lbl">Hero Subtitle</label>
+        <textarea class="inp" name="heroSubtitle" rows="3" style="resize:vertical">{{ site.heroSubtitle }}</textarea>
+      </div>
+
+      <div>
+        <label class="lbl">Primary Color</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="color" name="primaryColor" value="{{ site.primaryColor }}" id="pc" style="width:44px;height:38px;border:none;border-radius:8px;cursor:pointer" oninput="document.getElementById('pc-text').value=this.value;updatePreview()">
+          <input class="inp" id="pc-text" value="{{ site.primaryColor }}" style="flex:1" oninput="document.getElementById('pc').value=this.value;updatePreview()" pattern="^#[0-9A-Fa-f]{6}$">
+        </div>
+      </div>
+
+      <div>
+        <label class="lbl">Accent Color</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="color" name="accentColor" value="{{ site.accentColor }}" id="ac" style="width:44px;height:38px;border:none;border-radius:8px;cursor:pointer" oninput="document.getElementById('ac-text').value=this.value;updatePreview()">
+          <input class="inp" id="ac-text" value="{{ site.accentColor }}" style="flex:1" oninput="document.getElementById('ac').value=this.value;updatePreview()" pattern="^#[0-9A-Fa-f]{6}$">
+        </div>
+      </div>
+
+      <div>
+        <label class="lbl">Currency</label>
+        <select class="inp" name="currency">
+          {% for c in ["USD","EUR","GBP","BDT"] %}
+          <option {{ 'selected' if site.currency==c }}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="grid-column:1/-1">
+        <label class="lbl">Footer Text</label>
+        <input class="inp" name="footerText" value="{{ site.footerText }}"/>
+      </div>
+
+    </div>
+
+    <!-- Preview -->
+    <div id="preview" style="margin-top:18px;padding:14px;background:#f8f4ff;border-radius:10px;border:1.5px solid #e8d8ff">
+      <div style="font-weight:700;font-size:12px;color:var(--pc);margin-bottom:8px">Live Preview</div>
+      <div style="display:flex;gap:14px;align-items:center">
+        <div id="prev-pc" style="width:28px;height:28px;background:{{ site.primaryColor }};border-radius:7px"></div>
+        <div id="prev-ac" style="width:28px;height:28px;background:{{ site.accentColor }};border-radius:7px"></div>
+        <div>
+          <div id="prev-name" style="font-weight:800;font-size:15px;color:{{ site.primaryColor }}">{{ site.name }}</div>
+          <div id="prev-tag" style="font-size:11px;color:#888">{{ site.tagline }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button type="reset" class="btn" style="background:#f5f5f5;color:#666;padding:11px 20px">Reset</button>
+      <button type="submit" class="btn btn-primary" style="flex:1;padding:12px;font-size:14px">💾 Save Settings</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function updatePreview(){
+  const pc=document.getElementById('pc').value;
+  const ac=document.getElementById('ac').value;
+  document.getElementById('prev-pc').style.background=pc;
+  document.getElementById('prev-ac').style.background=ac;
+  document.getElementById('prev-name').style.color=pc;
+  // sync hidden inputs
+  document.querySelector('[name=primaryColor]').value=pc;
+  document.querySelector('[name=accentColor]').value=ac;
+}
+// sync name & tagline to preview live
+document.querySelector('[name=name]').addEventListener('input',e=>document.getElementById('prev-name').textContent=e.target.value);
+document.querySelector('[name=tagline]').addEventListener('input',e=>document.getElementById('prev-tag').textContent=e.target.value);
+</script>
+{% endblock %}

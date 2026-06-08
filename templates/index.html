@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}{{ site.name }} - Premium Digital Products{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<div style="background:linear-gradient(135deg,color-mix(in srgb,var(--pc) 5%,white) 0%,color-mix(in srgb,var(--ac) 5%,white) 100%);border-bottom:1px solid color-mix(in srgb,var(--pc) 12%,transparent);padding:52px 40px;text-align:center;position:relative;overflow:hidden">
+  <div style="position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:350px;height:350px;background:color-mix(in srgb,var(--pc) 6%,transparent);border-radius:50%"></div>
+  <div style="position:relative">
+    <div style="display:inline-block;background:color-mix(in srgb,var(--pc) 10%,white);color:var(--pc);font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:14px;border:1px solid color-mix(in srgb,var(--pc) 18%,transparent)">{{ site.tagline }}</div>
+    <h1 style="font-size:42px;font-weight:900;color:#1a1040;margin:0 0 14px;line-height:1.15;letter-spacing:-0.03em">{{ site.heroTitle }}</h1>
+    <p style="font-size:16px;color:#666;max-width:480px;margin:0 auto 26px;line-height:1.6">{{ site.heroSubtitle }}</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      {% for item in [("📦", all_products|length ~ "+ Products"), ("🛒", total_sales|string ~ " Sales"), ("⚡", "Instant Download"), ("✅", "Commercial License")] %}
+      <div style="background:#fff;border:1px solid color-mix(in srgb,var(--pc) 15%,transparent);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:#555;display:flex;align-items:center;gap:5px"><span>{{ item[0] }}</span>{{ item[1] }}</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div style="background:#fff;border-bottom:1px solid #f0eeff;padding:12px 40px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:62px;z-index:90">
+  <form method="get" style="display:contents" id="filter-form">
+    <input class="inp" style="max-width:240px;flex:0 0 auto;font-size:13px" name="q" value="{{ search }}" placeholder="🔍 Search products..." oninput="this.form.submit()"/>
+    <div style="display:flex;gap:6px;flex:1;flex-wrap:wrap">
+      {% for c in categories %}
+      <a href="?cat={{ c }}&q={{ search }}&sort={{ sort }}" style="padding:6px 15px;border-radius:20px;border:none;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;background:{{ 'var(--pc)' if selected_cat==c else '#f5f5f5' }};color:{{ '#fff' if selected_cat==c else '#555' }};text-decoration:none">{{ c }}</a>
+      {% endfor %}
+    </div>
+    <select class="inp" style="width:auto;flex-shrink:0;font-size:12px" name="sort" onchange="this.form.submit()">
+      {% for val, label in [("featured","Featured"),("popular","Most Popular"),("rating","Top Rated"),("price_asc","Price ↑"),("price_desc","Price ↓")] %}
+      <option value="{{ val }}" {{ 'selected' if sort==val }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <input type="hidden" name="cat" value="{{ selected_cat }}"/>
+  </form>
+</div>
+
+<!-- PRODUCTS -->
+<div style="max-width:1160px;margin:0 auto;padding:28px 40px">
+  <div class="text-muted" style="font-size:13px;margin-bottom:18px">
+    Showing <strong style="color:#1a1040">{{ products|length }}</strong> products
+    {% if selected_cat != 'All' %} in <strong class="text-primary">{{ selected_cat }}</strong>{% endif %}
+  </div>
+
+  {% if products %}
+  <div class="product-grid">
+    {% for p in products %}
+    {% set disc = ((1 - p.price / p.orig) * 100)|round|int if p.orig else 0 %}
+    <div class="card">
+      <div class="card-thumb">
+        {% if p.icon %}<img src="{{ p.icon }}" style="width:76px;height:76px;object-fit:cover;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.1)">
+        {% else %}<span class="emoji">{{ p.image }}</span>{% endif %}
+        {% if p.featured %}<span class="pill-featured">Featured</span>{% endif %}
+        {% if disc > 0 %}<span class="pill-discount">-{{ disc }}%</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <div class="flex flex-center justify-between">
+          {% set cc = cat_colors.get(p.category, '#6C3EE8') %}
+          <span class="badge" style="background:{{ cc }}18;color:{{ cc }};border-color:{{ cc }}30">{{ p.category }}</span>
+          <span class="stars">{{ '★' * (p.rating|round|int) }}{{ '☆' * (5 - p.rating|round|int) }}<span style="color:#aaa;font-size:11px;margin-left:3px">{{ p.rating }}</span></span>
+        </div>
+        <div class="fw-bold" style="font-size:14px">{{ p.name }}</div>
+        <div class="text-muted" style="font-size:12px;line-height:1.5;flex:1">{{ p.desc }}</div>
+        <div class="tags-row">{% for t in p.tags %}<span class="tag">#{{ t }}</span>{% endfor %}</div>
+        <div class="flex flex-center justify-between mt-1">
+          <div><span class="fw-black text-primary" style="font-size:19px">${{ p.price }}</span>{% if p.orig > p.price %}<span style="font-size:12px;color:#ccc;text-decoration:line-through;margin-left:5px">${{ p.orig }}</span>{% endif %}</div>
+          <span style="font-size:10px;color:#aaa">{{ "{:,}".format(p.sales) }} sales</span>
+        </div>
+        <button onclick="addToCart('{{ p.id }}')" id="btn-{{ p.id }}" style="padding:9px;border-radius:9px;border:none;background:var(--pc);color:#fff;font-weight:700;font-size:12px;cursor:pointer;transition:background 0.2s;margin-top:4px">Add to Cart</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:70px 0;color:#aaa">
+    <div style="font-size:50px;margin-bottom:14px">🔍</div>
+    <div style="font-size:17px;font-weight:700;color:#666">No products found</div>
+    <div style="font-size:13px;margin-top:6px">Try a different search or category</div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+// override addToCart to update button
+const _addOrig = addToCart;
+window.addToCart = function(pid){
+  fetch('/cart/add/'+pid,{method:'POST'}).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      loadCart();
+      const btn=document.getElementById('btn-'+pid);
+      if(btn){btn.style.background='#10B981';btn.textContent='✓ Added';}
+      showToast('🛒 Added to cart!');
+    }
+  });
+};
+</script>
+{% endblock %}
